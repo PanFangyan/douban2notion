@@ -99,10 +99,15 @@ def insert_movie(douban_name,notion_helper):
         subject = result.get("subject")
         movie["电影名"] = subject.get("title")
         create_time = result.get("create_time")
+        create_time = result.get("create_time")
         if not create_time or create_time == "Invalid DateTime":
-            print(f"Skipping movie due to invalid create_time: {create_time}")
-            continue
-        create_time = pendulum.parse(create_time, tz=utils.tz)
+             print(f"Skipping movie due to invalid create_time: {create_time}")
+        continue
+        try:
+            create_time = pendulum.parse(create_time, tz=utils.tz)
+        except pendulum.parsing.exceptions.ParserError as e:
+            print(f"Error parsing create_time '{create_time}': {e}")
+        continue
         #时间上传到Notion会丢掉秒的信息，这里直接将秒设置为0
         create_time = create_time.replace(second=0)
         movie["日期"] = create_time.int_timestamp
