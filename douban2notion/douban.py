@@ -38,7 +38,7 @@ AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 headers = {
     "host": DOUBAN_API_HOST,
     "authorization": f"Bearer {AUTH_TOKEN}" if AUTH_TOKEN else "",
-    "user-agent": "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 15_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.16(0x18001023) NetType/WIFI Language/zh_CN",
+    "user-agent": "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 15_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.16(0x18001023) NetType/WIFI Language[...]",
     "referer": "https://servicewechat.com/wx2f9b06c1de1ccfca/84/page-frame.html",
 }
 @retry(stop_max_attempt_number=3, wait_fixed=5000)
@@ -71,7 +71,6 @@ def fetch_subjects(user, type_, status):
     return results
 
 
-
 def insert_movie(douban_name,notion_helper):
     notion_movies = notion_helper.query_all(database_id=notion_helper.movie_database_id)
     notion_movie_dict = {}
@@ -100,13 +99,13 @@ def insert_movie(douban_name,notion_helper):
         movie["电影名"] = subject.get("title")
         create_time = result.get("create_time")
         if not create_time or create_time == "Invalid DateTime":
-             print(f"Skipping movie due to invalid create_time: {create_time}")
-        continue
+            print(f"Skipping movie due to invalid create_time: {create_time}")
+            continue
         try:
             create_time = pendulum.parse(create_time, tz=utils.tz)
         except pendulum.parsing.exceptions.ParserError as e:
             print(f"Error parsing create_time '{create_time}': {e}")
-        continue
+            continue
         #时间上传到Notion会丢掉秒的信息，这里直接将秒设置为0
         create_time = create_time.replace(second=0)
         movie["日期"] = create_time.int_timestamp
