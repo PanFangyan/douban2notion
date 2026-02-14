@@ -38,7 +38,7 @@ AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 headers = {
     "host": DOUBAN_API_HOST,
     "authorization": f"Bearer {AUTH_TOKEN}" if AUTH_TOKEN else "",
-    "user-agent": "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 15_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.16(0x18001023) NetType/WIFI Language[...]",
+    "user-agent": "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 15_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.16(0x18001023) NetType/WIFI Language[...]"
     "referer": "https://servicewechat.com/wx2f9b06c1de1ccfca/84/page-frame.html",
 }
 @retry(stop_max_attempt_number=3, wait_fixed=5000)
@@ -98,8 +98,12 @@ def insert_movie(douban_name,notion_helper):
         subject = result.get("subject")
         movie["电影名"] = subject.get("title")
         create_time = result.get("create_time")
-        if not create_time or create_time == "Invalid DateTime":
-            print(f"Skipping movie due to invalid create_time: {create_time}")
+        # Robust check for bad date values
+        if (
+            not create_time or
+            str(create_time).strip().lower() in ["invalid datetime", "none", "", "null"]
+        ):
+            print(f"Skipping movie due to invalid create_time: '{create_time}'")
             continue
         try:
             create_time = pendulum.parse(create_time, tz=utils.tz)
